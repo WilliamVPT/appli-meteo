@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AuthButtons from "./AuthButtons";
-
+import AddressList from "./AddressList";
 
 // Fonction de mappage pour les descriptions des codes météo
 const getWeatherDescription = (weatherCode) => {
@@ -40,8 +40,11 @@ const getWeatherDescription = (weatherCode) => {
 
 const Weather = () => {
   const [weather, setWeather] = useState(null);
+  const [isConnected, setIsConnected] = useState(false); // État de connexion
 
   useEffect(() => {
+    const savedConnectionState = localStorage.getItem("isConnected") === "true";
+    setIsConnected(savedConnectionState);
     axios
       .get("http://localhost:8000/api/weather")
       .then((response) => setWeather(response.data))
@@ -69,6 +72,8 @@ const Weather = () => {
           )}
 
           <AuthButtons />
+
+          {isConnected ? <AddressList /> : null}
         </div>
       </div>
     </div>

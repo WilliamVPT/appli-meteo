@@ -4,11 +4,16 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 
 #[ORM\Entity]
 #[ApiResource]
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -28,13 +33,16 @@ class User
     )]
     private ?string $password = null;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Address::class, cascade: ['persist', 'remove'])]
+    private Collection $addresses;
+
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
-    // Constructeur pour initialiser la date de création
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+        $this->addresses = new ArrayCollection();
     }
 
     // Getters et Setters
@@ -77,5 +85,55 @@ class User
         $this->createdAt = $createdAt;
 
         return $this;
+    }
+
+    public function getAddresses(): Collection
+    {
+        return $this->addresses;
+    }
+
+    public function addAddress(Address $address): self
+    {
+        if (!$this->addresses->contains($address)) {
+            $this->addresses[] = $address;
+            $address->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAddress(Address $address): self
+    {
+        if ($this->addresses->removeElement($address)) {
+            if ($address->getUser() === $this) {
+                $address->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    // Implémentation de UserInterface
+    public function getUserIdentifier(): string
+    {
+        // Retourne l'identifiant unique de l'utilisateur (souvent l'email)
+        return $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        // Par défaut, chaque utilisateur a le rôle "ROLE_USER"
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Si tu stockes des données sensibles temporaires, nettoie-les ici.
+    }
+
+    public function getSalt(): ?string
+    {
+        // Pas nécessaire si tu utilises un algorithme moderne comme bcrypt ou sodium.
+        return null;
     }
 }
