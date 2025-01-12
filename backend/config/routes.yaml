@@ -14,3 +14,13 @@ login:
     controller: App\Controller\AuthController::login
     methods: POST
 
+adresses:
+    path: /api/adresses
+    controller: App\Controller\AddressController::getAdresses
+    methods: GET
+
+add_address:
+    path: /api/adresses
+    controller: App\Controller\AddressController::add
+    methods: POST
+

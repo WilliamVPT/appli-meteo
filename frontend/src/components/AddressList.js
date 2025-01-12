@@ -6,22 +6,38 @@ const AddressList = () => {
   const [newAddress, setNewAddress] = useState("");
   const [message, setMessage] = useState("");
 
+   // Fonction pour extraire le user_id du token
+   const getUserIdFromToken = () => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1])); // Décoder le payload du JWT
+      console.log("Payload:", payload);
+      return payload.user_id; // Assurez-vous que le payload contient un champ user_id
+    }
+    return null;
+  };
+
   useEffect(() => {
-    // Charger les adresses associées à l'utilisateur
-    apiClient
-      .get("/addresses")
-      .then((response) => {
-        // Vérifier si response.data est bien un tableau
-        if (Array.isArray(response.data)) {
-          setAddresses(response.data);
-        } else {
-          setMessage("Données des adresses invalides.");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        setMessage("Erreur de récupération des adresses.");
-      });
+    const userId = getUserIdFromToken();
+    console.log("User ID:", userId);
+    if (userId) {
+      // Charger les adresses associées à l'utilisateur connecté
+      apiClient
+        .get(`/adresses?user_id=${userId}`) // Ajouter le user_id comme paramètre de requête
+        .then((response) => {
+          if (Array.isArray(response.data)) {
+            setAddresses(response.data);
+          } else {
+            setMessage("Données des adresses invalides.");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          setMessage("Erreur de récupération des adresses.");
+        });
+    } else {
+      setMessage("Utilisateur non authentifié.");
+    }
   }, []);
 
   const handleAddAddress = () => {
@@ -29,30 +45,46 @@ const AddressList = () => {
       setMessage("Veuillez entrer une adresse.");
       return;
     }
-  
+
     // Rechercher l'adresse via l'API Adresse.data.gouv.fr
     apiClient
-      .get(`https://api-adresse.data.gouv.fr/search/?q=${newAddress}&limit=1`) // URL de l'API
+      .get(`https://api-adresse.data.gouv.fr/search/?q=${newAddress}&limit=1`)
       .then((response) => {
-        // Vérifier si l'API retourne des résultats
         if (response.data && response.data.features.length > 0) {
-          const addressData = response.data.features[0]; // Prendre la première adresse retournée
+          const addressData = response.data.features[0];
           const location = addressData.properties.label;
-  
-          // Ajouter l'adresse à votre propre API
-          apiClient
-            .post("/addresses", { location })
-            .then((response) => {
-              setAddresses((prevAddresses) => [...prevAddresses, response.data]);
-              setNewAddress("");
-              setMessage("Adresse ajoutée !");
-            })
-            .catch((error) => {
-              console.error(error);
-              setMessage("Erreur lors de l'ajout de l'adresse.");
-            });
+
+          const userId = getUserIdFromToken(); // Récupérer user_id pour l'ajout
+          if (userId) {
+            // Ajouter l'adresse à votre propre API avec user_id
+            apiClient
+              .post(
+                "/adresses",
+                { location, user_id: userId }, // Inclure user_id dans le corps de la requête
+                {
+                  headers: {
+                    "Content-Type": "application/ld+json", // Assurez-vous d'avoir ce Content-Type
+                  },
+                }
+              )
+              .then((response) => {
+                setAddresses((prevAddresses) => [
+                  ...prevAddresses,
+                  response.data,
+                ]);
+                setNewAddress("");
+                setMessage("Adresse ajoutée avec succès !");
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                setMessage(
+                  error.response?.data?.error ||
+                    "Une erreur est survenue lors de l'ajout de l'adresse."
+                );
+              });
+          }
         } else {
-          setMessage("Aucune adresse trouvée.");
+          setMessage("Aucune adresse trouvée. Veuillez vérifier l'entrée.");
         }
       })
       .catch((error) => {
@@ -60,24 +92,27 @@ const AddressList = () => {
         setMessage("Erreur lors de la recherche de l'adresse.");
       });
   };
-  
-  
 
   const handleDeleteAddress = (id) => {
     apiClient
-      .delete(`/addresses/${id}`)
+      .delete(`/adresses/${id}`)
       .then(() => {
-        setAddresses(addresses.filter((address) => address.id !== id));
-        setMessage("Adresse supprimée !");
+        setAddresses((prevAddresses) =>
+          prevAddresses.filter((address) => address.id !== id)
+        );
+        setMessage("Adresse supprimée avec succès !");
       })
-      .catch((error) => setMessage("Erreur lors de la suppression."));
+      .catch((error) => {
+        console.error(error);
+        setMessage("Erreur lors de la suppression de l'adresse.");
+      });
   };
 
   return (
     <div>
       <h2>Vos adresses</h2>
       <ul>
-        {Array.isArray(addresses) && addresses.length === 0 ? (
+        {addresses.length > 0 ? (
           addresses.map((address) => (
             <li key={address.id}>
               {address.location}{" "}
@@ -87,7 +122,7 @@ const AddressList = () => {
             </li>
           ))
         ) : (
-          <p>Les adresses ne sont pas disponibles.</p>
+          <p>Aucune adresse enregistrée.</p>
         )}
       </ul>
       <div>

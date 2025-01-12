@@ -5,9 +5,25 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 
 #[ORM\Entity]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(
+            uriTemplate: '/api/adresses',
+            normalizationContext: ['groups' => ['address:read']]
+        ),
+        new Post(
+            uriTemplate: '/api/adresses',
+            inputFormats: ['jsonld' => ['application/ld+json']],
+            outputFormats: ['jsonld' => ['application/ld+json']],
+            normalizationContext: ['groups' => ['address:read']],
+            denormalizationContext: ['groups' => ['address:write']]
+        )
+    ]
+)]
 class Address
 {
     #[ORM\Id]
