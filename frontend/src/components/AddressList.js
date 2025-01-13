@@ -6,11 +6,11 @@ const AddressList = () => {
   const [newAddress, setNewAddress] = useState("");
   const [message, setMessage] = useState("");
 
-   // Fonction pour extraire le user_id du token
-   const getUserIdFromToken = () => {
+  // Fonction pour extraire le user_id du token
+  const getUserIdFromToken = () => {
     const token = localStorage.getItem("authToken");
     if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1])); // Décoder le payload du JWT
+      const payload = JSON.parse(atob(token.split(".")[1])); // Décoder le payload du JWT
       console.log("Payload:", payload);
       return payload.user_id; // Assurez-vous que le payload contient un champ user_id
     }
@@ -23,7 +23,7 @@ const AddressList = () => {
     if (userId) {
       // Charger les adresses associées à l'utilisateur connecté
       apiClient
-        .get(`/adresses?user_id=${userId}`) // Ajouter le user_id comme paramètre de requête
+        .get(`/adresses/user/${userId}`) // Ajouter le user_id comme paramètre de requête
         .then((response) => {
           if (Array.isArray(response.data)) {
             setAddresses(response.data);
@@ -76,10 +76,22 @@ const AddressList = () => {
                 setMessage("Adresse ajoutée avec succès !");
               })
               .catch((error) => {
-                console.error("Error:", error);
+                console.error("Error:", error); // Log de l'erreur
+                if (error.response) {
+                  // Le serveur a répondu avec un statut autre que 2xx
+                  console.error("Response data:", error.response.data);
+                  console.error("Response status:", error.response.status);
+                  console.error("Response headers:", error.response.headers);
+                } else if (error.request) {
+                  // La requête a été faite mais aucune réponse n'a été reçue
+                  console.error("Request:", error.request);
+                } else {
+                  // Quelque chose s'est mal passé lors de la configuration de la requête
+                  console.error("Error message:", error.message);
+                }
                 setMessage(
                   error.response?.data?.error ||
-                    "Une erreur est survenue lors de l'ajout de l'adresse."
+                    "Une erreur est survenue lors de la connexion."
                 );
               });
           }

@@ -14,13 +14,25 @@ login:
     controller: App\Controller\AuthController::login
     methods: POST
 
-adresses:
-    path: /api/adresses
-    controller: App\Controller\AddressController::getAdresses
-    methods: GET
-
-add_address:
+address_add:
     path: /api/adresses
     controller: App\Controller\AddressController::add
     methods: POST
+
+address_get_by_user:
+    path: /api/adresses/user/{userId}
+    controller: App\Controller\AddressController::getByUser
+    methods: GET
+
+address_delete:
+    path: /api/adresses/{id}
+    controller: App\Controller\AddressController::deleteAddress
+    methods: DELETE
+
+address_get_all:
+    path: /api/adresses
+    controller: App\Controller\AddressController::getAddresses
+    methods: GET
+
+
 

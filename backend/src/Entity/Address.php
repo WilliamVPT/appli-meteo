@@ -3,12 +3,14 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Metadata\ApiResource;
+use App\Repository\AddressRepository;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: AddressRepository::class)]
 #[ApiResource(
     operations: [
         new Get(
@@ -22,21 +24,26 @@ use ApiPlatform\Metadata\Post;
             normalizationContext: ['groups' => ['address:read']],
             denormalizationContext: ['groups' => ['address:write']]
         )
-    ]
+    ],
+    normalizationContext: ['groups' => ['address:read']],
+    denormalizationContext: ['groups' => ['address:write']]
 )]
 class Address
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['address:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
+    #[Groups(['address:read', 'address:write'])]
     private ?string $location = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'addresses')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['address:read', 'address:write'])]
     private ?User $user = null;
 
     public function getId(): ?int
