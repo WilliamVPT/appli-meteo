@@ -12,19 +12,6 @@ use ApiPlatform\Metadata\Post;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
 #[ApiResource(
-    operations: [
-        new Get(
-            uriTemplate: '/api/adresses',
-            normalizationContext: ['groups' => ['address:read']]
-        ),
-        new Post(
-            uriTemplate: '/api/adresses',
-            inputFormats: ['jsonld' => ['application/ld+json']],
-            outputFormats: ['jsonld' => ['application/ld+json']],
-            normalizationContext: ['groups' => ['address:read']],
-            denormalizationContext: ['groups' => ['address:write']]
-        )
-    ],
     normalizationContext: ['groups' => ['address:read']],
     denormalizationContext: ['groups' => ['address:write']]
 )]

@@ -1,39 +1,23 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../axiosConfig";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const LoginForm = () => {
-  const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post("http://localhost:8000/api/login", {
-        email,
-        password,
-      });
-
-      // Vérifiez si la réponse contient un token
-      const token = response.data.token;
-      if (token) {
-        // Stocke le jeton dans localStorage
-        localStorage.setItem("authToken", token);
-
-        // Indique que l'utilisateur est connecté
+    apiClient
+      .post("/login", { email, password })
+      .then((response) => {
+        localStorage.setItem("authToken", response.data.token);
         localStorage.setItem("isConnected", "true");
-
-        setMessage("Connexion réussie !");
-        setTimeout(() => {
-          nav("/"); // Redirige vers la page d'accueil ou une autre page
-        }, 1000); // Temporisation avant la redirection
-      } else {
-        setMessage("Jeton de connexion manquant.");
-      }
-    } catch (error) {
-      console.error("Error:", error); // Log de l'erreur
+        window.location.href = "/"; // Rediriger vers la page d'accueil
+      })
+      .catch((error) => {
+        console.error("Error:", error); // Log de l'erreur
         if (error.response) {
           // Le serveur a répondu avec un statut autre que 2xx
           console.error("Response data:", error.response.data);
@@ -50,29 +34,47 @@ const LoginForm = () => {
           error.response?.data?.error ||
             "Une erreur est survenue lors de la connexion."
         );
-      }
+      });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Connexion</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Mot de passe"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Se connecter</button>
-      {message && <p>{message}</p>}
-    </form>
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="card shadow">
+            <div className="card-body">
+              <h3 className="text-center mb-4">Connexion</h3>
+              {message && <div className="alert alert-danger">{message}</div>}
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">Mot de passe</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100">Se connecter</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

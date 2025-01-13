@@ -1,34 +1,25 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../axiosConfig";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const RegisterForm = () => {
-  const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Email:", email, "Password:", password); // Vérifie les valeurs des champs
-
-    axios
-      .post(
-        "http://localhost:8000/api/register",
-        { email, password },
-        {
-          headers: {
-            "Content-Type": "application/json", // assure-toi d'envoyer des données JSON
-          },
-        }
-      )
+    if (password !== confirmPassword) {
+      setMessage("Les mots de passe ne correspondent pas.");
+      return;
+    }
+    apiClient
+      .post("/register", { email, password })
       .then((response) => {
-        console.log("Response:", response); // Log de la réponse
-        setMessage("Inscription réussie !");
-        // Redirection après une réponse réussie
-        setTimeout(() => {
-          nav("/");
-        }, 2000); // Redirige après 2 secondes pour afficher le message
+        setMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.");
+        window.location.href = "/login"; // Rediriger vers la page d'accueil
+
       })
       .catch((error) => {
         console.error("Error:", error); // Log de l'erreur
@@ -52,25 +43,54 @@ const RegisterForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Inscription</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Mot de passe"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">S'inscrire</button>
-      {message && <p>{message}</p>}
-    </form>
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="card shadow">
+            <div className="card-body">
+              <h3 className="text-center mb-4">Inscription</h3>
+              {message && <div className="alert alert-info">{message}</div>}
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">Mot de passe</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="confirmPassword" className="form-label">Confirmer le mot de passe</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100">S'inscrire</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

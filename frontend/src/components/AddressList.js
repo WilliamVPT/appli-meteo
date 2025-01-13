@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../axiosConfig";
+import WeatherForecast from "./WeatherForecast";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const AddressList = () => {
   const [addresses, setAddresses] = useState([]);
   const [newAddress, setNewAddress] = useState("");
   const [message, setMessage] = useState("");
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   // Fonction pour extraire le user_id du token
   const getUserIdFromToken = () => {
     const token = localStorage.getItem("authToken");
     if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1])); // Décoder le payload du JWT
+      const payload = JSON.parse(atob(token.split('.')[1])); // Décoder le payload du JWT
       console.log("Payload:", payload);
       return payload.user_id; // Assurez-vous que le payload contient un champ user_id
     }
@@ -21,10 +24,12 @@ const AddressList = () => {
     const userId = getUserIdFromToken();
     console.log("User ID:", userId);
     if (userId) {
-      // Charger les adresses associées à l'utilisateur connecté
+      const url = `/adresses/user/${userId}`;
+      console.log("API URL:", url); // Afficher l'URL de la requête dans la console
       apiClient
-        .get(`/adresses/user/${userId}`) // Ajouter le user_id comme paramètre de requête
+        .get(url)
         .then((response) => {
+          console.log("API Response:", response); // Afficher la réponse de l'API dans la console
           if (Array.isArray(response.data)) {
             setAddresses(response.data);
           } else {
@@ -32,11 +37,13 @@ const AddressList = () => {
           }
         })
         .catch((error) => {
-          console.error(error);
+          console.error("API Error:", error); // Afficher l'erreur de l'API dans la console
           setMessage("Erreur de récupération des adresses.");
         });
     } else {
       setMessage("Utilisateur non authentifié.");
+      // Rediriger vers la page de connexion
+      window.location.href = "/login";
     }
   }, []);
 
@@ -53,17 +60,23 @@ const AddressList = () => {
         if (response.data && response.data.features.length > 0) {
           const addressData = response.data.features[0];
           const location = addressData.properties.label;
+          const coordinates = {
+            latitude: addressData.geometry.coordinates[1],
+            longitude: addressData.geometry.coordinates[0],
+          };
+          console.log("Adresse trouvée:", location);
 
           const userId = getUserIdFromToken(); // Récupérer user_id pour l'ajout
+          console.log("User ID:", userId);
           if (userId) {
             // Ajouter l'adresse à votre propre API avec user_id
             apiClient
               .post(
                 "/adresses",
-                { location, user_id: userId }, // Inclure user_id dans le corps de la requête
+                { location, user_id: userId, coordinates }, // Inclure user_id et les coordonnées dans le corps de la requête
                 {
                   headers: {
-                    "Content-Type": "application/ld+json", // Assurez-vous d'avoir ce Content-Type
+                    "Content-Type": "application/json", // Assurez-vous d'avoir ce Content-Type
                   },
                 }
               )
@@ -91,7 +104,7 @@ const AddressList = () => {
                 }
                 setMessage(
                   error.response?.data?.error ||
-                    "Une erreur est survenue lors de la connexion."
+                    "Une erreur est survenue lors de l'ajout de l'adresse."
                 );
               });
           }
@@ -106,47 +119,69 @@ const AddressList = () => {
   };
 
   const handleDeleteAddress = (id) => {
-    apiClient
-      .delete(`/adresses/${id}`)
-      .then(() => {
-        setAddresses((prevAddresses) =>
-          prevAddresses.filter((address) => address.id !== id)
-        );
-        setMessage("Adresse supprimée avec succès !");
-      })
-      .catch((error) => {
-        console.error(error);
-        setMessage("Erreur lors de la suppression de l'adresse.");
-      });
+    const userId = getUserIdFromToken(); // Récupérer user_id pour la suppression
+    if (userId) {
+      apiClient
+        .delete(`/addresses/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            "Content-Type": "application/json",
+          },
+          data: { user_id: userId }, // Inclure user_id dans le corps de la requête
+        })
+        .then(() => {
+          setAddresses((prevAddresses) =>
+            prevAddresses.filter((address) => address.id !== id)
+          );
+          setMessage("Adresse supprimée avec succès !");
+        })
+        .catch((error) => {
+          console.error(error);
+          setMessage("Erreur lors de la suppression de l'adresse.");
+        });
+    } else {
+      setMessage("Utilisateur non authentifié.");
+    }
+  };
+
+  const handleShowWeather = (address) => {
+    setSelectedAddress(address);
   };
 
   return (
-    <div>
-      <h2>Vos adresses</h2>
-      <ul>
-        {addresses.length > 0 ? (
-          addresses.map((address) => (
-            <li key={address.id}>
-              {address.location}{" "}
-              <button onClick={() => handleDeleteAddress(address.id)}>
-                Supprimer
-              </button>
-            </li>
-          ))
-        ) : (
-          <p>Aucune adresse enregistrée.</p>
-        )}
-      </ul>
-      <div>
+    <div className="container mt-4">
+      <h2 className="text-center mb-4">Liste des adresses</h2>
+      {message && <div className="alert alert-info">{message}</div>}
+      <div className="row">
+        {addresses.map((address) => (
+          <div key={address.id} className="col-md-6 mb-3">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">{address.location}</h5>
+                <WeatherForecast location={address.location} />
+                <button
+                  className="btn btn-danger mt-2"
+                  onClick={() => handleDeleteAddress(address.id)}
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="input-group mb-3">
         <input
           type="text"
-          placeholder="Nouvelle adresse"
+          className="form-control"
           value={newAddress}
           onChange={(e) => setNewAddress(e.target.value)}
+          placeholder="Entrez une nouvelle adresse"
         />
-        <button onClick={handleAddAddress}>Ajouter</button>
+        <button className="btn btn-primary" onClick={handleAddAddress}>
+          Ajouter l'adresse
+        </button>
       </div>
-      {message && <p>{message}</p>}
     </div>
   );
 };
