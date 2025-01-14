@@ -87,6 +87,7 @@ const AddressList = () => {
                 ]);
                 setNewAddress("");
                 setMessage("Adresse ajoutée avec succès !");
+                window.location.reload(); // Recharger la page pour afficher la nouvelle adresse
               })
               .catch((error) => {
                 console.error("Error:", error); // Log de l'erreur

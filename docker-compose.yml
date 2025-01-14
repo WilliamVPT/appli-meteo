@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: symfony-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL : "mysql://root:root@db:3306/appli_meteo?serverVersion=8.0.32&charset=utf8mb4"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: react-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+
+  db:
+    image: mysql:8.0
+    container_name: symfony-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appli_meteo
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/data:/var/lib/mysql          # Stockage persistant
+      - ./db/init:/docker-entrypoint-initdb.d # Scripts d'initialisation
