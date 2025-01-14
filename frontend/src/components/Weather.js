@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import AuthButtons from "./AuthButtons";
 import AddressList from "./AddressList";
 
@@ -40,11 +41,24 @@ const getWeatherDescription = (weatherCode) => {
 
 const Weather = () => {
   const [weather, setWeather] = useState(null);
-  const [isConnected, setIsConnected] = useState(false); // État de connexion
+  const [isConnected, setIsConnected] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const savedConnectionState = localStorage.getItem("isConnected") === "true";
-    setIsConnected(savedConnectionState);
+    const authToken = localStorage.getItem("authToken");
+    const isAuthenticated = authToken !== null;
+    setIsConnected(isAuthenticated);
+
+    if (isAuthenticated) {
+      try {
+        const payload = JSON.parse(atob(authToken.split('.')[1]));
+        setIsAdmin(payload.roles.includes("ROLE_ADMIN"));
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
+    }
+
     axios
       .get("http://localhost:8000/api/weather")
       .then((response) => setWeather(response.data))
@@ -63,8 +77,7 @@ const Weather = () => {
                 Température : {weather.current_weather.temperature}°C
               </p>
               <p className="lead">
-                Description :{" "}
-                {getWeatherDescription(weather.current_weather.weathercode)}
+                Description : {getWeatherDescription(weather.current_weather.weathercode)}
               </p>
             </div>
           ) : (
@@ -73,7 +86,15 @@ const Weather = () => {
 
           <AuthButtons />
 
-          {isConnected ? <AddressList /> : null}
+          {isConnected && isAdmin && (
+            <div className="text-center mt-4">
+              <button className="btn btn-warning mx-2" onClick={() => navigate("/dashboard")}>
+                Dashboard
+              </button>
+            </div>
+          )}
+
+          {isConnected && <AddressList />}
         </div>
       </div>
     </div>

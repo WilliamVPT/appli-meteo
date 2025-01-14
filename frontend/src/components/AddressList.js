@@ -24,7 +24,7 @@ const AddressList = () => {
     const userId = getUserIdFromToken();
     console.log("User ID:", userId);
     if (userId) {
-      const url = `/adresses/user/${userId}`;
+      const url = `api/adresses/user/${userId}`;
       console.log("API URL:", url); // Afficher l'URL de la requête dans la console
       apiClient
         .get(url)
@@ -72,7 +72,7 @@ const AddressList = () => {
             // Ajouter l'adresse à votre propre API avec user_id
             apiClient
               .post(
-                "/adresses",
+                "api/adresses",
                 { location, user_id: userId, coordinates }, // Inclure user_id et les coordonnées dans le corps de la requête
                 {
                   headers: {
@@ -123,7 +123,7 @@ const AddressList = () => {
     const userId = getUserIdFromToken(); // Récupérer user_id pour la suppression
     if (userId) {
       apiClient
-        .delete(`/addresses/${id}`, {
+        .delete(`api/addresses/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
             "Content-Type": "application/json",

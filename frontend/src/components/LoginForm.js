@@ -10,7 +10,7 @@ const LoginForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     apiClient
-      .post("/login", { email, password })
+      .post("api/login", { email, password })
       .then((response) => {
         localStorage.setItem("authToken", response.data.token);
         localStorage.setItem("isConnected", "true");

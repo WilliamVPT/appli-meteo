@@ -34,5 +34,10 @@ address_get_all:
     controller: App\Controller\AddressController::getAddresses
     methods: GET
 
+update_user:
+    path: /api/user/{id}
+    controller: App\Controller\UserController::updateUser
+    methods: PATCH
+
 
 

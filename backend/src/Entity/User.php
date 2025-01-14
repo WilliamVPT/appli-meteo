@@ -45,10 +45,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\Column(type: "json")]
+    #[Groups(["user:read", "user:write"])]
+    private array $roles = [];
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
         $this->addresses = new ArrayCollection();
+        $this->roles = ['ROLE_USER'];
     }
 
     // Getters et Setters
@@ -77,6 +82,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
 
         return $this;
     }
@@ -124,12 +145,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // Retourne l'identifiant unique de l'utilisateur (souvent l'email)
         return $this->email;
-    }
-
-    public function getRoles(): array
-    {
-        // Par défaut, chaque utilisateur a le rôle "ROLE_USER"
-        return ['ROLE_USER'];
     }
 
     public function eraseCredentials(): void

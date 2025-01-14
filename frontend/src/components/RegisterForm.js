@@ -15,7 +15,7 @@ const RegisterForm = () => {
       return;
     }
     apiClient
-      .post("/register", { email, password })
+      .post("api/register", { email, password })
       .then((response) => {
         setMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.");
         window.location.href = "/login"; // Rediriger vers la page d'accueil
