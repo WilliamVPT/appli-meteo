@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Création d'une instance Axios
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/", // URL de base de votre API
+  baseURL: "http://localhost:8000/", // URL de base de l'API
   headers: {
     "Content-Type": "application/json",
   },
@@ -27,7 +27,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Si une requête échoue avec un statut 401 (non autorisé), vous pouvez déconnecter l'utilisateur
+      // Si une requête échoue avec un statut 401 (non autorisé), déconnecter l'utilisateur
       localStorage.removeItem("authToken");
       localStorage.setItem("isConnected", "false");
       window.location.href = "/login"; // Redirige vers la page de connexion

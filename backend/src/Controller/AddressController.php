@@ -50,7 +50,6 @@ class AddressController extends AbstractController
             $em->persist($address);
             $em->flush();
         } catch (\Exception $e) {
-            // Afficher directement l'erreur
             return $this->json(['error' => 'An error occurred while adding the address: ' . $e->getMessage()], 500);
         }
 

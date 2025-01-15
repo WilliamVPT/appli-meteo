@@ -18,7 +18,7 @@ const RegisterForm = () => {
       .post("api/register", { email, password })
       .then((response) => {
         setMessage("Inscription réussie ! Vous pouvez maintenant vous connecter.");
-        window.location.href = "/login"; // Rediriger vers la page d'accueil
+        window.location.href = "/login"; // Rediriger vers la page de connexion
 
       })
       .catch((error) => {

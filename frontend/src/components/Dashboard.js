@@ -117,7 +117,7 @@ const Dashboard = () => {
                 { location, user_id: selectedUserId, coordinates }, // Inclure user_id et les coordonnées dans le corps de la requête
                 {
                   headers: {
-                    "Content-Type": "application/ld+json", // Assurez-vous d'avoir ce Content-Type
+                    "Content-Type": "application/ld+json",
                   },
                 }
               )

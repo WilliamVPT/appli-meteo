@@ -12,18 +12,6 @@ const AuthButtons = () => {
     setIsConnected(savedConnectionState);
   }, []);
 
-  // Gestion de la déconnexion (optionnel)
-  const handleLogout = () => {
-    setIsConnected(false);
-    localStorage.removeItem("isConnected"); // Supprime l'état de connexion
-  };
-
-  // Simule la connexion (par exemple après un login réussi)
-  const handleLoginSuccess = () => {
-    setIsConnected(true);
-    localStorage.setItem("isConnected", "true"); // Sauvegarde l'état
-  };
-
   // Boutons rendus conditionnellement
   return (
     <div className="text-center mt-4">

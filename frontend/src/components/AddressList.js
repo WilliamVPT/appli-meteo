@@ -15,7 +15,7 @@ const AddressList = () => {
     if (token) {
       const payload = JSON.parse(atob(token.split('.')[1])); // Décoder le payload du JWT
       console.log("Payload:", payload);
-      return payload.user_id; // Assurez-vous que le payload contient un champ user_id
+      return payload.user_id; // Le payload doit avoir user_id
     }
     return null;
   };
@@ -69,14 +69,13 @@ const AddressList = () => {
           const userId = getUserIdFromToken(); // Récupérer user_id pour l'ajout
           console.log("User ID:", userId);
           if (userId) {
-            // Ajouter l'adresse à votre propre API avec user_id
             apiClient
               .post(
                 "api/adresses",
                 { location, user_id: userId, coordinates }, // Inclure user_id et les coordonnées dans le corps de la requête
                 {
                   headers: {
-                    "Content-Type": "application/json", // Assurez-vous d'avoir ce Content-Type
+                    "Content-Type": "application/json", // Content type pour cette requête
                   },
                 }
               )

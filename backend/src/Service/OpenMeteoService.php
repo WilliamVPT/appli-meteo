@@ -15,6 +15,7 @@ class OpenMeteoService
 
     public function getWeather(string $city): array
     {
+        //donne la météo de Reims actuelle
         $response = $this->client->get('v1/forecast', [
             'query' => [
                 'latitude' => 49.2583,
